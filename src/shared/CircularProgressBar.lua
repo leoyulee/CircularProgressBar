@@ -4,6 +4,8 @@
     Based off this Source: https://devforum.roblox.com/t/circularradial-progress/454443
     Changed it to be a module script to allow direct access and configuration within code.
     Also changed it to be event driven, instead of updating every frame.
+
+	Github repo: https://github.com/leoyulee/CircularProgressBar
 ]=]
 local CircularProgressBar:CircularProgressBar = {
 	ExistingObjects = {}
@@ -148,8 +150,8 @@ function CircularProgressBar.new(Parent: GuiBase, Name: string, CurrentPercent: 
 		CurrentPercent = CurrentPercent or 100;
 		FilledColor = FilledColor or Color3.new(1,1,1);
 		EmptyColor = EmptyColor or Color3.new(1,1,1);
-		FilledTransparency = FilledTransparency or 0;
-		EmptyTransparency = EmptyTransparency or 1;
+		FilledTransparency = FilledTransparency;
+		EmptyTransparency = EmptyTransparency;
 		BaseImage = BaseImage or "rbxassetid://3587367081";
 		Connections = {};
 	},CircularProgressBar)
@@ -173,14 +175,14 @@ function CircularProgressBar.NewFromTable(Input: {Parent: GuiBase, Name: string,
 end
 function CircularProgressBar:Destroy()
 	--Destroy the current object to free up memory when this isn't used anymore.
-	self.Object:Destroy()
-	self.Object = nil
 	local Connections = self.Connections
 	for ConnectionKey,Connection in next,Connections do
 		Connection:Disconnect()
 		Connections[ConnectionKey] = nil
 	end
 	Connections = nil
+	self.Object:Destroy()
+	self.Object = nil
 	for PropertyName,_PropertyData in next,self do
 		_PropertyData = nil
 		self[PropertyName] = nil
