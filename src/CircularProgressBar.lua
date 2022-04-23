@@ -4,8 +4,8 @@
     Based off this Source: https://devforum.roblox.com/t/circularradial-progress/454443
     Changed it to be a module script to allow direct access and configuration within code.
     Also changed it to be event driven, instead of updating every frame.
-
-	Github repo: https://github.com/leoyulee/CircularProgressBar
+    
+    Github repo: https://github.com/leoyulee/CircularProgressBar
 ]=]
 local CircularProgressBar:CircularProgressBar = {
 	ExistingObjects = {}
@@ -145,11 +145,11 @@ function CircularProgressBar.new(Parent: GuiBase, Name: string, CurrentPercent: 
 	end
 	local NewProgressBar = setmetatable({
 		Object = Object;
-		ProgressDirection = ProgressDirection or 1;
-		StartingAngle = StartingAngle or 0;
-		CurrentPercent = CurrentPercent or 100;
-		FilledColor = FilledColor or Color3.new(1,1,1);
-		EmptyColor = EmptyColor or Color3.new(1,1,1);
+		ProgressDirection = ProgressDirection;
+		StartingAngle = StartingAngle;
+		CurrentPercent = CurrentPercent;
+		FilledColor = FilledColor;
+		EmptyColor = EmptyColor;
 		FilledTransparency = FilledTransparency;
 		EmptyTransparency = EmptyTransparency;
 		BaseImage = BaseImage or "rbxassetid://3587367081";
@@ -323,14 +323,17 @@ do --Percentage Display
 		if ProgressDirection > 0 then
 			RightGradient.Rotation = math.clamp(DegreesFilled,0,180)
 			RightFrame.Visible = IsEmpty == false
-			LeftFrame.Visible = IsBeyondHalf
+			LeftFrame.Visible = true--IsBeyondHalf --Hacky stuff
 			if IsBeyondHalf then
+				self:ApplyColor()--Hacky stuff
 				LeftGradient.Rotation = math.clamp(DegreesFilled,180,360)
 				local TransOffset = 0.001
 				if IsFull then
 					TransOffset = 0
 				end
 				self:ApplyTransparency(TransOffset)
+			else --Hacky stuff
+				LeftGradient.Color = ColorSequence.new(self.EmptyColor)
 			end
 		else
 			LeftGradient.Rotation = 180 - math.clamp(DegreesFilled,0,180)
