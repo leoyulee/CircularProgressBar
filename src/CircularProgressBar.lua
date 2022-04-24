@@ -32,6 +32,7 @@ local Template = script:FindFirstChild("CircularProgressBar") do
 				LeftFrame.Position = UDim2.new(0,0,0,0)
 				LeftFrame.Size = UDim2.new(0.5,0,1,0)
 				LeftFrame.SizeConstraint = Enum.SizeConstraint.RelativeXY
+				LeftFrame.ClipsDescendants = true
 				LeftFrame.Parent = Template
 				local ImageLabel = Instance.new("ImageLabel") do
 					ImageLabel.BackgroundTransparency = 1
@@ -61,6 +62,7 @@ local Template = script:FindFirstChild("CircularProgressBar") do
 				RightFrame.Position = UDim2.new(1,0,0,0)
 				RightFrame.Size = UDim2.new(0.5,0,1,0)
 				RightFrame.SizeConstraint = Enum.SizeConstraint.RelativeXY
+				RightFrame.ClipsDescendants = true
 				RightFrame.Parent = Template
 				local ImageLabel = Instance.new("ImageLabel") do
 					ImageLabel.BackgroundTransparency = 1
@@ -69,7 +71,7 @@ local Template = script:FindFirstChild("CircularProgressBar") do
 					ImageLabel.Position = UDim2.new(-1,0,0,0)
 					ImageLabel.Size = UDim2.new(2,0,1,0)
 					ImageLabel.ImageTransparency = 0.5
-					ImageLabel.Parent = LeftFrame
+					ImageLabel.Parent = RightFrame
 					local UIGradient = Instance.new("UIGradient") do
 						UIGradient.Rotation = 180
 						UIGradient.Transparency = NumberSequence.new({
@@ -230,7 +232,8 @@ do --Coloring
 		A helper function that syncs the Colors ([CircularProgressBar.FilledColor] and [CircularProgressBar.EmptyColor]) to the displayed UI ([CircularProgressBar.Object]).
 		Is called when SetEmptyColor or SetFilledColor is called.
 	]=]
-	function CircularProgressBar:ApplyColor()
+	function CircularProgressBar:ApplyColor(Offset:number?)
+		Offset = Offset or 0
 		local FilledColor = self.FilledColor
 		local EmptyColor = self.EmptyColor
 		local MainGui = self.Object
@@ -239,8 +242,8 @@ do --Coloring
 		local ActualColor = ColorSequence.new(
 			{
 				ColorSequenceKeypoint.new(0,FilledColor),
-				ColorSequenceKeypoint.new(0.5,FilledColor),
-				ColorSequenceKeypoint.new(0.501,EmptyColor),
+				ColorSequenceKeypoint.new(0.5+Offset,FilledColor),
+				ColorSequenceKeypoint.new(0.501+Offset,EmptyColor),
 				ColorSequenceKeypoint.new(1,EmptyColor)
 			}
 		)
@@ -269,7 +272,7 @@ do --Coloring
 	end
 end
 do --Transparency
-	function CircularProgressBar:ApplyTransparency(Offset:number)
+	function CircularProgressBar:ApplyTransparency(Offset:number?)
 		Offset = Offset or 0
 		local FilledTransparency:number = self.FilledTransparency
 		local EmptyTransparency:number = self.EmptyTransparency
@@ -305,6 +308,8 @@ do --Percentage Display
 		local LeftGradient:UIGradient = LeftFrame.ImageLabel.UIGradient
 		local RightFrame:Frame = MainGui.RightFrame
 		local RightGradient:UIGradient = RightFrame.ImageLabel.UIGradient
+		local EmptyTransparency = self.EmptyTransparency
+		local IsFullTransparent = EmptyTransparency >= 1
 		local ProgressDirection:number = self.ProgressDirection
 		local CurrentPercent:number = self.CurrentPercent
 		local StartingAngle = self.StartingAngle
@@ -320,33 +325,47 @@ do --Percentage Display
 			LeftFrame.Visible = IsEmpty == false
 			RightFrame.Visible = IsEmpty == false
 		end]]
+		local Offset: number
+		if not IsFullTransparent then
+			RightFrame.Visible = true
+			LeftFrame.Visible = true
+		end
 		if ProgressDirection > 0 then
 			RightGradient.Rotation = math.clamp(DegreesFilled,0,180)
-			RightFrame.Visible = IsEmpty == false
-			LeftFrame.Visible = true--IsBeyondHalf --Hacky stuff
+			if IsFullTransparent then
+				RightFrame.Visible = IsEmpty == false
+				LeftFrame.Visible = IsBeyondHalf
+			end
 			if IsBeyondHalf then
-				self:ApplyColor()--Hacky stuff
+				--Hacky stuff
 				LeftGradient.Rotation = math.clamp(DegreesFilled,180,360)
-				local TransOffset = 0.001
+				Offset = 0.001
 				if IsFull then
-					TransOffset = 0
+					Offset = 0
 				end
-				self:ApplyTransparency(TransOffset)
-			else --Hacky stuff
-				LeftGradient.Color = ColorSequence.new(self.EmptyColor)
+			else
+				Offset = 0
 			end
 		else
 			LeftGradient.Rotation = 180 - math.clamp(DegreesFilled,0,180)
-			LeftFrame.Visible = IsEmpty == false
-			RightFrame.Visible = IsBeyondHalf
+			if IsFullTransparent then
+				LeftFrame.Visible = IsEmpty == false
+				RightFrame.Visible = IsBeyondHalf
+			end
 			if IsBeyondHalf then
 				RightGradient.Rotation = 180 - math.clamp(DegreesFilled,180,360)
-				local TransOffset = 0.001
+				Offset = 0.001
 				if IsFull then
-					TransOffset = 0
+					Offset = 0
 				end
-				self:ApplyTransparency(TransOffset)
+			else
+				Offset = 0
+				if IsEmpty then
+					Offset = -0.001
+				end
 			end
+			self:ApplyTransparency(Offset)
+			self:ApplyColor(Offset)
 		end
 	end
 	function CircularProgressBar:SetStartingAngle(NewDegrees: number): number
