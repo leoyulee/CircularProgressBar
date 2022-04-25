@@ -332,13 +332,12 @@ do --Percentage Display
 		end
 		if ProgressDirection > 0 then
 			RightGradient.Rotation = math.clamp(DegreesFilled,0,180)
+			LeftGradient.Rotation = math.clamp(DegreesFilled,180,360)
 			if IsFullTransparent then
 				RightFrame.Visible = IsEmpty == false
 				LeftFrame.Visible = IsBeyondHalf
 			end
 			if IsBeyondHalf then
-				--Hacky stuff
-				LeftGradient.Rotation = math.clamp(DegreesFilled,180,360)
 				Offset = 0.001
 				if IsFull then
 					Offset = 0
@@ -348,12 +347,12 @@ do --Percentage Display
 			end
 		else
 			LeftGradient.Rotation = 180 - math.clamp(DegreesFilled,0,180)
+			RightGradient.Rotation = 180 - math.clamp(DegreesFilled,180,360)
 			if IsFullTransparent then
 				LeftFrame.Visible = IsEmpty == false
 				RightFrame.Visible = IsBeyondHalf
 			end
 			if IsBeyondHalf then
-				RightGradient.Rotation = 180 - math.clamp(DegreesFilled,180,360)
 				Offset = 0.001
 				if IsFull then
 					Offset = 0
